@@ -1,0 +1,86 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Aviator Signal</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #00ffff;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
+    .label {
+      font-size: 1.1rem;
+      margin-top: 15px;
+      color: #aaa;
+    }
+    .value {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-top: 5px;
+      color: #00ff99;
+    }
+    footer {
+      margin-top: 40px;
+      font-size: 0.9rem;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>Aviator Signal Viewer</h1>
+
+  <div class="label">Date</div>
+  <div id="currentDate" class="value">--</div>
+
+  <div class="label">Time</div>
+  <div id="currentTime" class="value">--</div>
+
+  <div class="label">Next Signal</div>
+  <div id="signalTime" class="value">--</div>
+
+  <footer>POWERED BY XTREME PREDICTOR © 2025</footer>
+
+  <script>
+    function updateTime() {
+      const now = new Date();
+      document.getElementById("currentDate").textContent = now.toLocaleDateString();
+      document.getElementById("currentTime").textContent = now.toLocaleTimeString();
+    }
+
+    function loadSignalTime() {
+      fetch("signals.json?t=" + Date.now())
+        .then(res => res.json())
+        .then(data => {
+          const today = new Date().toISOString().split("T")[0];
+          const now = new Date();
+          const currentTime = now.toTimeString().substring(0, 8);
+          const entry = data[today];
+
+          if (entry) {
+            const nextTime = entry.times.find(t => t > currentTime) || "Completed";
+            document.getElementById("signalTime").textContent = nextTime;
+          } else {
+            document.getElementById("signalTime").textContent = "--";
+          }
+        });
+    }
+
+    setInterval(() => {
+      updateTime();
+      loadSignalTime();
+    }, 5000);
+
+    updateTime();
+    loadSignalTime();
+  </script>
+</body>
+</html>
