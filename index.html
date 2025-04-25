@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Smooth Time Signal Viewer</title>
+  <title>Smooth Signal Viewer</title>
   <style>
     body {
       background-color: #0b0b0b;
@@ -47,48 +47,40 @@
   <div class="label">Next Signal Time:</div>
   <div id="signalTime" class="value">--</div>
 
-
   <footer>POWERED BY XTREME PREDICTOR © 2025</footer>
 
   <script>
     function updateTime() {
       const now = new Date();
-      const timeString = now.toLocaleTimeString();
-      const dateString = now.toLocaleDateString();
-      document.getElementById("currentTime").textContent = timeString;
-      document.getElementById("currentDate").textContent = dateString;
+      document.getElementById("currentDate").textContent = now.toLocaleDateString();
+      document.getElementById("currentTime").textContent = now.toLocaleTimeString();
+      requestAnimationFrame(updateTime);
     }
 
-    function loadSignal() {
-      fetch("signals.json?t=" + Date.now())
-        .then(res => res.json())
-        .then(data => {
-          const today = new Date().toISOString().split("T")[0];
-          const now = new Date();
-          const currentTime = now.toTimeString().split(" ")[0];
-          const entry = data[today];
-          if (entry) {
-            const next = entry.times.find(t => t > currentTime) || "Completed";
-            document.getElementById("signalTime").textContent = next;
-            
-          } else {
-            document.getElementById("signalTime").textContent = "--";
-            
-          }
-        })
-        .catch(() => {
-          document.getElementById("signalTime").textContent = "Error";
-          
-        });
+    async function loadSignal() {
+      try {
+        const res = await fetch("signals.json?t=" + Date.now());
+        const data = await res.json();
+        const today = new Date().toISOString().split("T")[0];
+        const now = new Date();
+        const currentTime = now.toTimeString().split(" ")[0];
+        const entry = data[today];
+
+        if (entry && entry.times && entry.times.length > 0) {
+          const next = entry.times.find(t => t > currentTime) || "Completed";
+          document.getElementById("signalTime").textContent = next;
+        } else {
+          document.getElementById("signalTime").textContent = "--";
+        }
+      } catch (err) {
+        document.getElementById("signalTime").textContent = "Error loading data";
+      } finally {
+        setTimeout(loadSignal, 5000);
+      }
     }
 
-    // Call once immediately
-    updateTime();
+    requestAnimationFrame(updateTime);
     loadSignal();
-
-    // Schedule time update every 1000ms and signal check every 5000ms
-    setInterval(updateTime, 1000);
-    setInterval(loadSignal, 5000);
   </script>
 </body>
 </html>
